@@ -92,6 +92,18 @@ impl Dcphandler {
         )
     }
 
+    pub fn set_ip_of_station(&mut self, mac: String, ip: String, netmask: String, gateway: String) {
+        use crate::dcpblockrequest::DCPBlockRequest;
+        use crate::dcpblock::create_ip_parameter_block;
+        use crate::dcppaket::build_set_packet;
+
+        let ip_block = create_ip_parameter_block(&ip, &netmask, &gateway);
+        let request = build_set_packet(mac, vec![ip_block]);
+
+        self.send_packet(request);
+    }
+
+
     pub fn identify_all(&mut self) -> Vec<Device> {
         let dsc_mac = constants::PROFINET_MULTICAST_MAC_IDENTIFY;
         let (option, suboption) = constants::Option::ALL;

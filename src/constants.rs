@@ -7,6 +7,8 @@ pub const RESPONSE_DELAY: u16 = 0x0080;
 pub const ETHER_TYPE: u16 = 0x8892;
 // Value for letting the LED blink
 pub const LED_BLINK_VALUE: [u8; 2] = [0x01, 0x00];
+// Option code for DCP Set IP Parameter block (Profinet Option 0x03)
+pub const OPTION_IP_PARAMETER: u8 = 0x03;
 
 pub struct FrameID;
 

@@ -53,3 +53,24 @@ impl DCPBlock {
         return packet;
     }
 }
+
+pub fn create_ip_parameter_block(ip: &str, netmask: &str, gateway: &str) -> DCPBlockRequest {
+    let mut data = Vec::new();
+
+    for octet in ip.split('.') {
+        data.push(octet.parse::<u8>().unwrap());
+    }
+    for octet in netmask.split('.') {
+        data.push(octet.parse::<u8>().unwrap());
+    }
+    for octet in gateway.split('.') {
+        data.push(octet.parse::<u8>().unwrap());
+    }
+
+    DCPBlockRequest {
+        option: crate::constants::OPTION_IP_PARAMETER,
+        suboption: 1,
+        data,
+    }
+}
+
