@@ -1,7 +1,3 @@
-#![allow(dead_code)]
-use crate::dcpblockrequest::DCPBlockRequest;
-
-
 pub struct DCPBlock {
     pub option: u8,
     pub suboption: u8,
@@ -9,6 +5,7 @@ pub struct DCPBlock {
     pub status: u16,
     pub payload: Vec<u8>,
 }
+
 impl DCPBlock {
     pub fn new(option: u8, suboption: u8, status: u16, payload: Vec<u8>) -> DCPBlock {
         let length = payload.len() as u16;
@@ -40,24 +37,24 @@ impl DCPBlock {
     pub fn compile(&self) -> Vec<u8> {
         let mut packet: Vec<u8> = Vec::new();
         let mut header: Vec<u8> = Vec::new();
-        header.push(self.option); 
-        header.push(self.suboption); 
-        let paylen = self.payload.len() as u16; 
+        header.push(self.option);
+        header.push(self.suboption);
+        let paylen = self.payload.len() as u16;
         let mut pay = self.payload.clone();
-        // if the payload has odd length, add one byte padding at the end
         if (paylen % 2) != 0 {
             pay.push(0x00);
         }
         header.extend_from_slice(&paylen.to_be_bytes());
-        header.extend_from_slice(&self.status.to_be_bytes()); // 2bytes
+        header.extend_from_slice(&self.status.to_be_bytes());
 
         packet.extend(&header);
         packet.extend(&pay);
-        //Check how to handle status
         return packet;
     }
 }
 
+// NEW FUNCTION for setting IP:
+use crate::dcpblockrequest::DCPBlockRequest;
 pub fn create_ip_parameter_block(ip: &str, netmask: &str, gateway: &str) -> DCPBlockRequest {
     let mut data = Vec::new();
 
@@ -74,7 +71,7 @@ pub fn create_ip_parameter_block(ip: &str, netmask: &str, gateway: &str) -> DCPB
     DCPBlockRequest {
         option: crate::constants::OPTION_IP_PARAMETER,
         suboption: 1,
-        data,
+        payload: data,
     }
 }
 
