@@ -92,23 +92,54 @@ impl Dcphandler {
         )
     }
 
-    pub fn set_ip_of_station(&mut self, mac: String, ip: String, netmask: String, gateway: String) {
-        use crate::dcpblockrequest::DCPBlockRequest;
-        use crate::dcpblock::create_ip_parameter_block;
-        use crate::dcppaket::build_set_packet;
-
-        let ip_block = create_ip_parameter_block(&ip, &netmask, &gateway);
-        let request = build_set_packet(mac, vec![ip_block]);
-
-        self.send_packet(request);
+    pub fn set_ip_of_station(&mut self, mac: &str, ip: &str, netmask: &str, gateway: &str) {
+        let mut value: Vec<u8> = Vec::new();
+    
+        for octet in ip.split('.') {
+            value.push(octet.parse::<u8>().unwrap());
+        }
+        for octet in netmask.split('.') {
+            value.push(octet.parse::<u8>().unwrap());
+        }
+        for octet in gateway.split('.') {
+            value.push(octet.parse::<u8>().unwrap());
+        }
+    
+        let (option, suboption) = (constants::OPTION_IP_PARAMETER, 1);
+        value.splice(0..0, constants::BlockQualifier::STORE_PERMANENT);
+    
+        self.send_request(
+            mac,
+            constants::FrameID::GET_SET,
+            constants::ServiceID::SET,
+            option,
+            suboption,
+            Some(value),
+            constants::RESPONSE_DELAY,
+        )
     }
 
 
     pub fn send_packet(&mut self, packet: crate::dcppaket::DCPPacket) {
-        let data = packet.compile();
-        self.socket
-            .send_to(&data, &self.interface)
-            .expect("Failed to send packet");
+        let bytes = packet.compile();
+    
+        let smac = mac_address_string_to_bytes(self.src_mac.as_str());
+        let sourcemac = pnet::datalink::MacAddr::new(smac[0], smac[1], smac[2], smac[3], smac[4], smac[5]);
+    
+        let tmac = mac_address_string_to_bytes(&packet.destination);
+        let targetmac = pnet::datalink::MacAddr::new(tmac[0], tmac[1], tmac[2], tmac[3], tmac[4], tmac[5]);
+    
+        let mut ethernet_buffer = [0u8; 1500];
+        let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
+        ethernet_packet.set_destination(targetmac);
+        ethernet_packet.set_source(sourcemac);
+        ethernet_packet.set_ethertype(EtherType(constants::ETHER_TYPE));
+        ethernet_packet.set_payload(&bytes);
+    
+        self.sender
+            .send_to(ethernet_packet.packet(), None)
+            .unwrap()
+            .unwrap();
     }
 
 
