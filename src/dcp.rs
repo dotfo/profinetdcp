@@ -120,29 +120,6 @@ impl Dcphandler {
     }
 
 
-    pub fn send_packet(&mut self, packet: crate::dcppaket::DCPPacket) {
-        let bytes = packet.compile();
-    
-        let smac = mac_address_string_to_bytes(self.src_mac.as_str());
-        let sourcemac = pnet::datalink::MacAddr::new(smac[0], smac[1], smac[2], smac[3], smac[4], smac[5]);
-    
-        let tmac = mac_address_string_to_bytes(&packet.destination);
-        let targetmac = pnet::datalink::MacAddr::new(tmac[0], tmac[1], tmac[2], tmac[3], tmac[4], tmac[5]);
-    
-        let mut ethernet_buffer = [0u8; 1500];
-        let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
-        ethernet_packet.set_destination(targetmac);
-        ethernet_packet.set_source(sourcemac);
-        ethernet_packet.set_ethertype(EtherType(constants::ETHER_TYPE));
-        ethernet_packet.set_payload(&bytes);
-    
-        self.sender
-            .send_to(ethernet_packet.packet(), None)
-            .unwrap()
-            .unwrap();
-    }
-
-
     pub fn identify_all(&mut self) -> Vec<Device> {
         let dsc_mac = constants::PROFINET_MULTICAST_MAC_IDENTIFY;
         let (option, suboption) = constants::Option::ALL;
