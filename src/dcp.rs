@@ -104,6 +104,14 @@ impl Dcphandler {
     }
 
 
+    pub fn send_packet(&mut self, packet: crate::dcppaket::DCPPacket) {
+        let data = packet.compile();
+        self.socket
+            .send_to(&data, &self.interface)
+            .expect("Failed to send packet");
+    }
+
+
     pub fn identify_all(&mut self) -> Vec<Device> {
         let dsc_mac = constants::PROFINET_MULTICAST_MAC_IDENTIFY;
         let (option, suboption) = constants::Option::ALL;

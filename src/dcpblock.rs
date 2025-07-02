@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+use crate::dcpblockrequest::DCPBlockRequest;
+
+
 pub struct DCPBlock {
     pub option: u8,
     pub suboption: u8,

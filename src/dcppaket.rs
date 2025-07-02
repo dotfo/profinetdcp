@@ -74,3 +74,18 @@ impl DCPPacket {
         return packet;
     }
 }
+
+use crate::dcpblockrequest::DCPBlockRequest;
+use crate::dcppaket::DCPPacket;
+use crate::constants::{FrameID, ServiceID, ServiceType};
+
+pub fn build_set_packet(mac: String, blocks: Vec<DCPBlockRequest>) -> DCPPacket {
+    DCPPacket {
+        destination: mac,
+        frame_id: FrameID::GET_SET,
+        service_id: ServiceID::SET,
+        service_type: ServiceType::REQUEST,
+        xid: 0x0001,
+        blocks,
+    }
+}
